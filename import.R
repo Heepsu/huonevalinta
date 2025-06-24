@@ -1,0 +1,68 @@
+library(data.table)
+library(dplyr)
+library(tidyr)
+
+paths <- c(
+  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_task-8ee3.csv",
+  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_task-ebzj.csv",
+  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_task-ervk.csv",
+  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_task-fxyl.csv",
+  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_task-wvcs.csv"
+)
+
+# Participant.Public.ID = participant id
+# Response = Participant's answer on a scale from 1-9
+# Tag = Measured emotion
+datalist <- list()
+for (file_path in paths) {
+  data <- read.csv(file_path, header = TRUE)
+  
+  if ('Spreadsheet..video1' %in% names(data)) {
+    names(data)[names(data) == 'Spreadsheet..video1'] <- 'videoset1'
+  }
+  if ('Spreadsheet..video2' %in% names(data)) {
+    names(data)[names(data) == 'Spreadsheet..video2'] <- 'videoset2'
+  }
+  
+  data <- data[, c('Participant.Public.ID', 'Object.Name' , 'Response', 'videoset1', 'videoset2')]
+  datalist[[length(datalist) + 1]] <- data
+}
+
+# Bind all as one dataset
+data <- do.call(rbind, datalist)
+data <- as.data.table(data)
+
+paths_questionnaire <- c(
+  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_questionnaire-39o4.csv",
+  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_questionnaire-bvet.csv",
+  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_questionnaire-ebow.csv",
+  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_questionnaire-umjg.csv",
+  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_questionnaire-w1tf.csv"
+)
+
+datalist_questionnaire <- list()
+for (file_path in paths_questionnaire) {
+  data_questionnaire <- read.csv(file_path, header = TRUE)
+  
+
+  
+  data_questionnaire <- data_questionnaire[, c('Participant.Public.ID', 'Question', 'Response')]
+  datalist_questionnaire[[length(datalist_questionnaire) + 1]] <- data_questionnaire
+}
+
+# Bind all as one dataset
+data_questionnaire <- do.call(rbind, datalist_questionnaire)
+data_questionnaire <- as.data.table(data_questionnaire)
+
+# remove NA values 
+
+# convert to wide format 
+data_wide <- data %>%
+  mutate(row_id = row_number()) %>%
+  pivot_wider(names_from = row_id, values_from = Response)
+
+data_questionnaire_wide <- data_questionnaire %>%
+  pivot_wider(names_from = Question, values_from = Response)
+
+merged_data <- left_join(data_wide, data_questionnaire_wide, by = "Participant.Public.ID")
+
