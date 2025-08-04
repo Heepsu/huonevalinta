@@ -1,14 +1,15 @@
 library(data.table)
 library(dplyr)
 library(tidyr)
+library(here)
 
-paths <- c(
-  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_task-8ee3.csv",
-  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_task-ebzj.csv",
-  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_task-ervk.csv",
-  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_task-fxyl.csv",
-  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_task-wvcs.csv"
-)
+paths <- here("data", c(
+  "data_exp_194853-v8_task-8ee3.csv",
+  "data_exp_194853-v8_task-ebzj.csv",
+  "data_exp_194853-v8_task-ervk.csv",
+  "data_exp_194853-v8_task-fxyl.csv",
+  "data_exp_194853-v8_task-wvcs.csv"
+))
 
 # Participant.Public.ID = participant id
 # Response = Participant's answer on a scale from 1-9
@@ -32,13 +33,13 @@ for (file_path in paths) {
 data <- do.call(rbind, datalist)
 data <- as.data.table(data)
 
-paths_questionnaire <- c(
-  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_questionnaire-39o4.csv",
-  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_questionnaire-bvet.csv",
-  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_questionnaire-ebow.csv",
-  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_questionnaire-umjg.csv",
-  "~/Documents/GitHub/huonevalinta/data/data_exp_194853-v8_questionnaire-w1tf.csv"
-)
+paths_questionnaire <- here("data", c(
+  "data_exp_194853-v8_questionnaire-39o4.csv",
+  "data_exp_194853-v8_questionnaire-bvet.csv",
+  "data_exp_194853-v8_questionnaire-ebow.csv",
+  "data_exp_194853-v8_questionnaire-umjg.csv",
+  "data_exp_194853-v8_questionnaire-w1tf.csv"
+))
 
 datalist_questionnaire <- list()
 for (file_path in paths_questionnaire) {
@@ -55,6 +56,7 @@ data_questionnaire <- do.call(rbind, datalist_questionnaire)
 data_questionnaire <- as.data.table(data_questionnaire)
 
 # remove NA values 
+
 
 # convert to wide format 
 data_wide <- data %>%
