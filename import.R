@@ -56,7 +56,8 @@ data_questionnaire <- do.call(rbind, datalist_questionnaire)
 data_questionnaire <- as.data.table(data_questionnaire)
 
 # remove NA values 
-
+idx <- data_questionnaire$Question == '' | is.na(data_questionnaire$Question) 
+data_questionnaire <- data_questionnaire[!idx, ]
 
 # convert to wide format 
 data_wide <- data %>%
