@@ -33,6 +33,23 @@ for (file_path in paths) {
 data <- do.call(rbind, datalist)
 data <- as.data.table(data)
 
+data <- data %>%
+  mutate(Object.Name = case_when(
+    Object.Name == 'Rating Scale1' ~ 'Unpleasant-Pleasant',
+    Object.Name == 'Rating Scale2' ~ 'Calm-Aroused',
+    Object.Name == 'Rating Scale3' ~ 'Relaxed-Tense',
+    Object.Name == 'Rating Scale4' ~ 'Constricted Spacious',
+    Object.Name == 'Rating Scale5' ~ 'Unsafe-Safe',
+    Object.Name == 'Rating Scale6' ~ 'Leave-Stay',
+    Object.Name == 'Rating Scale7' ~ 'Liking',
+    Object.Name == 'Rating Scale8' ~ 'Excitement',
+    Object.Name == 'Rating Scale9' ~ 'Joy',
+    Object.Name == 'Rating Scale10' ~ 'Anxiety',
+    Object.Name == 'Rating Scale11' ~ 'Fear',
+    Object.Name == 'Rating Scale12' ~ 'Awe',
+    TRUE ~ Object.Name # This line keeps any other values in the column unchanged
+  ))
+
 paths_questionnaire <- here("data", c(
   "data_exp_194853-v8_questionnaire-39o4.csv",
   "data_exp_194853-v8_questionnaire-bvet.csv",
@@ -44,8 +61,6 @@ paths_questionnaire <- here("data", c(
 datalist_questionnaire <- list()
 for (file_path in paths_questionnaire) {
   data_questionnaire <- read.csv(file_path, header = TRUE)
-  
-
   
   data_questionnaire <- data_questionnaire[, c('Participant.Public.ID', 'Question', 'Response')]
   datalist_questionnaire[[length(datalist_questionnaire) + 1]] <- data_questionnaire
