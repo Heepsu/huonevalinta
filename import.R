@@ -74,6 +74,10 @@ data_questionnaire <- as.data.table(data_questionnaire)
 idx <- data_questionnaire$Question == '' | is.na(data_questionnaire$Question) 
 data_questionnaire <- data_questionnaire[!idx, ]
 
+# Remove duplicates based on Participant.Public.ID and Question
+# The first occurrence for each unique combination will be kept.
+data_questionnaire <- unique(data_questionnaire, by = c('Participant.Public.ID', 'Question'))
+
 # convert to wide format 
 data_wide <- data %>%
   mutate(row_id = row_number()) %>%
