@@ -33,6 +33,11 @@ for (file_path in paths) {
 data <- do.call(rbind, datalist)
 data <- as.data.table(data)
 
+
+idx <- data$Response == '' | is.na(data$Response) | data$Response == 'BEGIN' | data$Response == 'END'
+data <- data[!idx, ]
+
+
 data <- data %>%
   mutate(Object.Name = case_when(
     Object.Name == 'Rating Scale1' ~ 'Unpleasant-Pleasant',
@@ -78,13 +83,5 @@ data_questionnaire <- data_questionnaire[!idx, ]
 # The first occurrence for each unique combination will be kept.
 data_questionnaire <- unique(data_questionnaire, by = c('Participant.Public.ID', 'Question'))
 
-# convert to wide format 
-data_wide <- data %>%
-  mutate(row_id = row_number()) %>%
-  pivot_wider(names_from = row_id, values_from = Response)
 
-data_questionnaire_wide <- data_questionnaire %>%
-  pivot_wider(names_from = Question, values_from = Response)
-
-merged_data <- left_join(data_wide, data_questionnaire_wide, by = "Participant.Public.ID")
 
