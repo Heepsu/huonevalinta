@@ -2,6 +2,7 @@ library(data.table)
 library(dplyr)
 library(tidyr)
 library(here)
+library(tidyverse)
 
 paths <- here("data", c(
   "data_exp_194853-v8_task-8ee3.csv",
@@ -36,7 +37,6 @@ data <- as.data.table(data)
 
 idx <- data$Response == '' | is.na(data$Response) | data$Response == 'BEGIN' | data$Response == 'END'
 data <- data[!idx, ]
-
 
 data <- data %>%
   mutate(Object.Name = case_when(
@@ -82,6 +82,21 @@ data_questionnaire <- data_questionnaire[!idx, ]
 # Remove duplicates based on Participant.Public.ID and Question
 # The first occurrence for each unique combination will be kept.
 data_questionnaire <- unique(data_questionnaire, by = c('Participant.Public.ID', 'Question'))
+
+
+data <- data %>%
+  # Group by participant
+  group_by(Participant.Public.ID) %>%
+  
+  # Create column 'Choice', if object name is 'Response' take the value from the column Response, otherwise NA
+  mutate(Choice = ifelse(Object.Name == "Response", Response, NA)) %>%
+  
+  # Fill columns with missing (NA) values in column Choice with the name of the video participant has selected 
+  fill(Choice, .direction = "down") %>%
+  ungroup() %>%
+  
+  # Filter out rows where objects name is 'Response' so Response column will have only numeric values 
+  filter(Object.Name != "Response")
 
 
 
