@@ -1,6 +1,6 @@
-#############################################################################
+#---------------------------------------------------------------------------#
 # Imports and cleans experiment and questionnaire data for further analysis #
-#############################################################################
+#---------------------------------------------------------------------------#
 
 library(data.table)
 library(dplyr)
@@ -8,7 +8,7 @@ library(tidyr)
 library(here)
 library(tidyverse)
 
-# --- NOTE: Data is assumed to exist in folder named "data" in the working directory. ---
+# --- NOTE: Data is assumed to exist in folder named "data" in the working directory. --- 
 paths <- here("data", c(
   "data_exp_194853-v8_task-8ee3.csv",
   "data_exp_194853-v8_task-ebzj.csv",
@@ -88,7 +88,7 @@ data_questionnaire <- data_questionnaire[!idx, ]
 # Remove duplicates based on Participant.Public.ID and Question
 data_questionnaire <- unique(data_questionnaire, by = c('Participant.Public.ID', 'Question'))
 
-
+# Add new column to separate the video selection participant made and the emotion ratings 
 data <- data %>%
   # Group by participant
   group_by(Participant.Public.ID) %>%
