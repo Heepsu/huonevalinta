@@ -1,9 +1,14 @@
+#############################################################################
+# Imports and cleans experiment and questionnaire data for further analysis #
+#############################################################################
+
 library(data.table)
 library(dplyr)
 library(tidyr)
 library(here)
 library(tidyverse)
 
+# --- NOTE: Data is assumed to exist in folder named "data" in the working directory. ---
 paths <- here("data", c(
   "data_exp_194853-v8_task-8ee3.csv",
   "data_exp_194853-v8_task-ebzj.csv",
@@ -34,10 +39,11 @@ for (file_path in paths) {
 data <- do.call(rbind, datalist)
 data <- as.data.table(data)
 
-
+# Clean data by removing empty strings, NA values, strings 'BEGIN' and 'END'
 idx <- data$Response == '' | is.na(data$Response) | data$Response == 'BEGIN' | data$Response == 'END'
 data <- data[!idx, ]
 
+# Match rating scales to correspond to measured emotion scales
 data <- data %>%
   mutate(Object.Name = case_when(
     Object.Name == 'Rating Scale1' ~ 'Unpleasant-Pleasant',
@@ -52,7 +58,7 @@ data <- data %>%
     Object.Name == 'Rating Scale10' ~ 'Anxiety',
     Object.Name == 'Rating Scale11' ~ 'Fear',
     Object.Name == 'Rating Scale12' ~ 'Awe',
-    TRUE ~ Object.Name # This line keeps any other values in the column unchanged
+    TRUE ~ Object.Name # Keeps any other values in the column unchanged
   ))
 
 paths_questionnaire <- here("data", c(
@@ -75,12 +81,11 @@ for (file_path in paths_questionnaire) {
 data_questionnaire <- do.call(rbind, datalist_questionnaire)
 data_questionnaire <- as.data.table(data_questionnaire)
 
-# remove NA values 
+# Clean data by removing empty strings and NA values
 idx <- data_questionnaire$Question == '' | is.na(data_questionnaire$Question) 
 data_questionnaire <- data_questionnaire[!idx, ]
 
 # Remove duplicates based on Participant.Public.ID and Question
-# The first occurrence for each unique combination will be kept.
 data_questionnaire <- unique(data_questionnaire, by = c('Participant.Public.ID', 'Question'))
 
 
