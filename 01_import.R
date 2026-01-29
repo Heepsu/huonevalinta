@@ -113,7 +113,10 @@ data_questionnaire <- data_questionnaire[!idx, ]
 # Remove duplicates based on Participant.Public.ID and Question
 data_questionnaire <- unique(data_questionnaire, by = c('Participant.Public.ID', 'Question'))
 
+# demographics 
 
+unique_participants <- length(unique(data_questionnaire$Participant.Public.ID))
+print(unique_participants)
 
 
 
