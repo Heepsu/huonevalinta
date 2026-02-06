@@ -43,7 +43,7 @@ mean_data_bi <- mean_data %>%
   filter(`Object.Name` %in% target_emotions2)
 
 plot_mean_emotions <- ggplot(
-  data = mean_data, 
+  data = mean_data_bi, 
   aes(
     x = Object.Name,                 
     y = mean_response,              
@@ -126,12 +126,14 @@ video_means <- data %>%
   group_by(Object.Name, environment, Choice) %>%
   summarize(mean_response = mean(Response, na.rm = TRUE), .groups = "drop")
 
+video_means <- video_means %>% 
+  filter(`Object.Name` %in% target_emotions2)
 
 plot_raw_emotions_boxplot <- ggplot() +
 
   geom_boxplot(
-    data = data,
-    aes(x = Object.Name, y = Response, fill = environment),
+    data = video_means,
+    aes(x = Object.Name, y = mean_response, fill = environment),
     width = 0.8,
     position = position_dodge(0.9),
     outlier.shape = NA,
