@@ -1,6 +1,7 @@
-
+*.txt
 *.png
 *.csv
+*.pdf
 
 huonevalinta.Rproj
 .DS_Store
