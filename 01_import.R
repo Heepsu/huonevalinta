@@ -114,7 +114,6 @@ data_questionnaire <- data_questionnaire[!idx, ]
 data_questionnaire <- unique(data_questionnaire, by = c('Participant.Public.ID', 'Question'))
 
 # demographics 
-
 unique_participants <- length(unique(data_questionnaire$Participant.Public.ID))
 print(unique_participants)
 
