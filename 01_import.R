@@ -82,6 +82,33 @@ data <- data %>%
 data <- data %>%
   mutate(Response = as.numeric(Response))
 
+######################
+# TRIAL SUMMARY DATA #
+######################
+
+trial_summary <- data %>%
+  group_by(videoset1, videoset2) %>%
+  summarise(
+    n_total = n(),
+    
+    # Percentage picking Video 1
+    pct_picked_v1 = (sum(Choice == videoset1, na.rm = TRUE) / n()) * 100,
+    
+    # Percentage picking Video 2
+    pct_picked_v2 = (sum(Choice == videoset2, na.rm = TRUE) / n()) * 100,
+    
+    .groups = 'drop'
+  ) %>%
+  left_join(
+    data %>%
+      group_by(videoset1, videoset2, Object.Name) %>%
+      summarise(avg_rating = mean(Response, na.rm = TRUE), .groups = 'drop') %>%
+      pivot_wider(names_from = Object.Name, values_from = avg_rating),
+    by = c("videoset1", "videoset2")
+  )
+
+print(trial_summary)
+
 #####################################
 # IMPORT & CLEAN QUESTIONNAIRE DATA #
 #####################################
@@ -116,6 +143,7 @@ data_questionnaire <- unique(data_questionnaire, by = c('Participant.Public.ID',
 # demographics 
 unique_participants <- length(unique(data_questionnaire$Participant.Public.ID))
 print(unique_participants)
+
 
 
 
