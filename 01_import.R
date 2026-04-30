@@ -50,7 +50,7 @@ data <- data[!idx, ]
 data <- data %>%
   mutate(Object.Name = case_when(
     Object.Name == 'Rating Scale1' ~ 'Unpleasant-Pleasant',
-    Object.Name == 'Rating Scale2' ~ 'Calm-Aroused',
+    Object.Name == 'Rating Scale2' ~ 'Aroused-Calm',
     Object.Name == 'Rating Scale3' ~ 'Relaxed-Tense',
     Object.Name == 'Rating Scale4' ~ 'Constricted Spacious',
     Object.Name == 'Rating Scale5' ~ 'Unsafe-Safe',
@@ -81,6 +81,9 @@ data <- data %>%
 
 data <- data %>%
   mutate(Response = as.numeric(Response))
+
+###
+
 
 ######################
 # TRIAL SUMMARY DATA #
