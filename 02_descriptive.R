@@ -81,48 +81,6 @@ print(plot_mean_emotions)
 # BOX PLOT # 
 ############
 
-data_bi <- data %>% 
-  filter(`Object.Name` %in% target_emotions2)
-
-plot_raw_emotions_boxplot <- ggplot(
-  data = data, 
-  aes(
-    x = Object.Name, 
-    y = Response, 
-    fill = environment 
-  )
-) +
-  geom_boxplot(
-    width = 0.8, 
-    position = position_dodge(0.9) 
-  ) +
-  
-  scale_y_continuous(
-    limits = c(1, 9), 
-    breaks = seq(1, 9, by = 1)
-  ) +
-  
-  labs(
-    title = "", 
-    x = "",
-    y = "Response", 
-    fill = "Environment"
-  ) +
-  
-  theme_minimal() + 
-  theme(
-    axis.title.x = element_text(margin = margin(t = 10)),
-    axis.title.y = element_text(margin = margin(r = 10)),
-    legend.position = "bottom",
-    axis.text.x = element_text(angle = 45, hjust = 1) # rotation of x-axis labels
-  ) +
-  
-  scale_fill_brewer(palette = "Set2")
-
-print(plot_raw_emotions_boxplot)
-
-###
-
 # mean response for each video
 video_means <- data %>%
   group_by(Object.Name, environment, Choice) %>%
