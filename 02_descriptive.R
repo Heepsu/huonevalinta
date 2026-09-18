@@ -11,6 +11,18 @@ se <- function(x) {
   return(sd(x_clean) / sqrt(length(x_clean)))
 }
 
+get_emotion_label <- function(emotion_scale) {
+  labels <- c(
+    'Unpleasant-Pleasant'           = "Unpleasant – Pleasant",
+    'Aroused-Calm'                  = "Calm — Aroused",
+    'Relaxed Tense'                 = "Relaxed — Tense",
+    'Constricted-Spacious'          = "Constricted — Spacious",
+    'Wanttoremainhere-Wanttomoveon' = "Stay — Leave"
+  )
+  return(labels[emotion_scale])
+}
+
+# adds column environment to the data
 data <- data %>%
   mutate(
     environment = substr(Choice, 1, 6)
@@ -29,147 +41,130 @@ write.csv(mean_data,
           file = "mean_data_huonevalinta.csv",
           row.names = FALSE)
 
-
-#########
-# PLOTS #
-#########
+# --- PREPARE DATA FOR PLOTTING --- #
 
 target_emotions <- c("Anxiety", "Awe", "Excitement", "Fear", "Joy", "Liking")
 
 mean_data_uni <- mean_data %>% 
   filter(`Object.Name` %in% target_emotions)
 
-target_emotions2 <- c("Calm-Aroused", "Constricted Spacious", "Leave-Stay", "Relaxed-Tense", "Unpleasant-Pleasant", "Unsafe-Safe")
+target_emotions2 <- c("Aroused-Calm", "Constricted Spacious", "Leave-Stay", "Relaxed-Tense", "Unpleasant-Pleasant", "Unsafe-Safe")
 
 mean_data_bi <- mean_data %>% 
   filter(`Object.Name` %in% target_emotions2)
 
-plot_mean_emotions <- ggplot(
-  data = mean_data_bi, 
-  aes(
-    x = Object.Name,                 
-    y = mean_response,              
-    fill = environment           
-  )
-) +
-  geom_bar(
-    stat = "identity",           
-    position = position_dodge(0.9) # Dodge/separate the bars for each environment
-  ) +
-  
-  labs(
-    title = "",
-    x = "",
-    y = "Mean Response",
-    fill = "Environment"
-  ) +
-  
-  theme_minimal() + 
-  theme(
-    # plot.title = element_text(hjust = 0.5, face = "bold"), 
-    axis.title.x = element_text(margin = margin(t = 10)),
-    axis.title.y = element_text(margin = margin(r = 10)),
-    legend.position = "bottom" 
-  ) +
-  
-  
-  scale_fill_brewer(palette = "Set2")
-
-print(plot_mean_emotions)
-
-############
-# BOX PLOT # 
-############
-
+# now means are calculated for each video, but there is not that many stimuli
+# would it be better to plot raw data? 
 # mean response for each video
 video_means <- data %>%
   group_by(Object.Name, environment, Choice) %>%
   summarize(mean_response = mean(Response, na.rm = TRUE), .groups = "drop")
 
-video_means <- video_means %>% 
-  filter(`Object.Name` %in% target_emotions2)
+video_means1 <- video_means %>% filter(`Object.Name` %in% target_emotions)
+video_means2 <- video_means %>% filter(`Object.Name` %in% target_emotions2)
 
-plot_raw_emotions_boxplot <- ggplot() +
+# --- PLOT EMOTION MEANS --- # 
 
-  geom_boxplot(
-    data = video_means,
-    aes(x = Object.Name, y = mean_response, fill = environment),
-    width = 0.8,
-    position = position_dodge(0.9),
-    outlier.shape = NA,
-    alpha = 0.5
-  ) +
+plot_emotion_means <- function(df, plot_title = "") {
+  
+  # 1. Filter and calculate mean + standard error
+  summary_data <- df %>%
+   
+    group_by(Object.Name) %>%
+    summarize(
+      mean_val = mean(mean_response, na.rm = TRUE),
+      sd_val   = sd(mean_response, na.rm = TRUE),
+      n        = n(),
+      se_val   = sd_val / sqrt(n),
+      .groups  = "drop"
+    )
+  
+  # 2. Build plot
+  ggplot(summary_data, aes(x = reorder(Object.Name, mean_val), y = mean_val)) +
+    geom_col(fill = "#6D9EC1", width = 0.6, alpha = 0.85) +
+    geom_errorbar(
+      aes(ymin = mean_val - se_val, ymax = mean_val + se_val),
+      width = 0.2,
+      color = "black",
+      linewidth = 0.7
+    ) +
+    geom_text(
+      aes(label = sprintf("%.2f", mean_val)),
+      hjust = -0.3,
+      size = 4,
+      fontface = "bold"
+    ) +
+    coord_flip() + # Horizontal flip makes long emotion names easy to read
+    scale_y_continuous(limits = c(0, 9.5), breaks = 1:9) +
+    labs(
+      x = "",
+      y = "Mean Response (± SE)",
+      title = plot_title
+    ) +
+    theme_classic(base_size = 14) +
+    theme(
+      panel.border = element_rect(color = "black", fill = NA, linewidth = 0.7),
+      axis.line = element_blank(),
+      panel.grid.major.x = element_line(color = "grey85", linewidth = 0.5, linetype = "dashed"),
+      plot.title = element_text(face = "bold", size = 14)
+    )
+}
 
-  geom_jitter(
-    data = video_means,
-    aes(
-      x = Object.Name, 
-      y = mean_response, 
-      fill = environment, 
-      group = environment
-    ),
-    position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.9),
-    color = "black", 
-    shape = 21,      
-    size = 2,
-    alpha = 0.8
-  ) +
-  scale_y_continuous(limits = c(1, 9), breaks = 1:9) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_minimal() +
-  theme(
-    legend.position = "bottom",
-    axis.text.x = element_text(angle = 45, hjust = 1)
-  )
-
-print(plot_raw_emotions_boxplot)
-
-###
-
-# Target list 1: Discrete Emotions
-plot_uni <- ggplot(mean_data_uni, aes(x = reorder(Object.Name, mean_response), y = mean_response, color = environment)) +
-  # Using points and lines instead of bars for a cleaner look
-  geom_point(position = position_dodge(0.5), size = 3) +
-  geom_errorbar(aes(ymin = mean_response - 0.2, ymax = mean_response + 0.2), # Replace 0.2 with SE if you have it
-                position = position_dodge(0.5), width = 0.2) +
-  coord_flip() + # Horizontal is easier to read for lists
-  labs(title = "Mean Emotional Responses",
-       subtitle = "Discrete emotion categories (1-9 scale)",
-       x = NULL, y = "Mean Rating", color = "Environment") +
-  theme_minimal(base_size = 12) +
-  theme(
-    panel.grid.minor = element_blank(),
-    legend.position = "top",
-    plot.title = element_text(face = "bold")
-  ) +
-  scale_color_brewer(palette = "Dark2")
-
+# 1. Plot Unipolar Target Emotions
+plot_uni <- plot_emotion_means(
+  df = mean_data_uni, 
+  plot_title = "Unipolar Emotion Means"
+)
 print(plot_uni)
 
-###
+# 2. Plot Bipolar Target Emotions
+plot_bi <- plot_emotion_means(
+  df = mean_data_bi, 
+  plot_title = "Bipolar Emotion Means"
+)
+print(plot_bi)
 
-# Filter for bipolar emotions
-data_bi <- data %>% filter(Object.Name %in% target_emotions2)
+# --- PLOT VIDEO MEANS --- # 
 
-plot_bi_boxplot <- ggplot(data_bi, aes(x = environment, y = Response, fill = environment)) +
-  # Add a slight jitter to see the individual data points density
-  geom_jitter(alpha = 0.1, width = 0.2, color = "grey40") + 
-  geom_boxplot(alpha = 0.7, outlier.shape = NA, width = 0.5) +
-  # Facet by Object.Name so each scale has its own mini-plot
-  facet_wrap(~Object.Name, scales = "free_x", nrow = 2) +
-  scale_y_continuous(breaks = seq(1, 9, 1), limits = c(1, 9)) +
-  scale_fill_brewer(palette = "Set2") +
-  labs(title = "Distribution of Dimensional Scales",
-       x = NULL, y = "Rating (1-9)") +
-  theme_bw() + # BW theme often looks better with facets
-  theme(
-    legend.position = "none", # Hide legend because x-axis labels cover it
-    strip.background = element_rect(fill = "white"),
-    strip.text = element_text(face = "bold"),
-    axis.text.x = element_text(angle = 0) 
-  )
+create_boxplot <- function(df){
+  
+  boxplot <- ggplot(df, aes(x = environment, y = mean_response, fill = environment)) +
+    geom_boxplot(
+      width = 0.6,
+      position = position_dodge(0.8),
+      outlier.shape = NA,
+      alpha = 0.5
+    ) +
+    geom_jitter(
+      position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.8),
+      color = "black", 
+      shape = 21,      
+      size = 2,
+      alpha = 0.8
+    ) +
+    facet_wrap(~ Object.Name) +
+    scale_y_continuous(limits = c(1, 9), breaks = 1:9) +
+    scale_fill_brewer(palette = "Set2") +
+    labs(x = "", y = "Mean Rating / Video", fill = "Environment") +
+    theme_classic(base_size = 14, base_family = "sans") +
+    theme(
+      panel.border = element_rect(color = "black", fill = NA, linewidth = 0.7), 
+      axis.line = element_blank(),
+      panel.grid.major.y = element_line(color = "grey85", linewidth = 0.5, linetype = "dashed"),
+      legend.position = "bottom",
+      # strip.background = element_blank(),
+      strip.background = element_rect(fill = NA, color = "black", linewidth = 0.7), # Box around facet titles
+      #    strip.text = element_text(size = 12, face = "bold", margin = margin(t = 4, b = 4))
+    )
+  
+  return(boxplot)
+}
 
-print(plot_bi_boxplot)
+boxplot_uni <- create_boxplot(video_means1)
+print(boxplot_uni)
+
+boxplot_bi <- create_boxplot(video_means2)
+print(boxplot_bi)
 
 
 ##################################
@@ -206,3 +201,4 @@ ggplot(plot_data, aes(x = `Unpleasant-Pleasant`, y = `Aroused-Calm`)) +
     panel.grid.minor = element_blank(),
     plot.title = element_text(face = "bold", size = 14)
   )
+
